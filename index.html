@@ -1,18 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Music Recommendation System</title>
+    <title>Welcome to the Fuzzy Inference System</title>
+    <link rel="stylesheet" href="static/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
+
 <body>
-    <h1>Get Your Music Recommendations</h1>
-    <form action="{{ url_for('results') }}" method="post">
-        <!-- Your input fields here -->
-        <input type="text" name="mood" placeholder="Enter mood level">
-        <input type="text" name="intensity" placeholder="Enter intensity level">
-        <input type="text" name="time" placeholder="Enter time of day">
-        <input type="text" name="seed_song_url" placeholder="Enter seed song URL">
-        <button type="submit">Get Recommendations</button>
-    </form>
+    <header>
+        <h1>Welcome to the Fuzzy Inference System</h1>
+    </header>
+
+    <section class="user-inputs">
+        <h2>Enter Your Details</h2>
+        <form action="/results" method="POST">
+            <div class="form-group">
+                <label for="mood">Mood:</label>
+                <input type="text" id="mood" name="mood" required>
+                <small>Mood scale from 0 to 10, where 0 is horribly upset and 10 is ecstatically happy.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="intensity">Intensity:</label>
+                <input type="number" id="intensity" name="intensity" required>
+                <small>Intensity scale from 0 to 10, where 0 means you're so low energy you can't get out of bed and 10
+                    means you've consumed enough caffeine to kill a bear.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="time">Time of Day:</label>
+                <input type="text" id="time" name="time" required>
+                <small>Enter the hour in military time (0 to 23).</small>
+            </div>
+
+            <div class="form-group">
+                <label for="seed_song_url">Seed Song URL:</label>
+                <input type="url" id="seed_song_url" name="seed_song_url" required>
+                <small>Provide a valid URL for the seed song.</small>
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+    </section>
 </body>
+
 </html>

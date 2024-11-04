@@ -1,29 +1,28 @@
 from flask import Flask, request, render_template
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
-import yaml
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import numpy as np
 import os
 import matplotlib.pyplot as plt
 import matplotlib
+
 matplotlib.use('Agg')
 
 app = Flask(__name__, template_folder='.')
 
 # Load Spotify API credentials from a configuration file
-with open('spotify_api.yaml', 'r') as file:
-    config = yaml.safe_load(file)
-
-CLIENT_ID = config['CLIENT_ID']
-CLIENT_SECRET = config['CLIENT_SECRET']
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
 
 # Initialize Spotify client
-sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
+sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
+    client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
 
 if not os.path.exists('static'):
     os.makedirs('static')
+
 
 def run_fuzzy_simulation(mood_input, intensity_level, time):
 
@@ -103,18 +102,28 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.close()
 
     rule1 = ctrl.Rule(intensity['lively'], acousticness['low'])
-    rule2 = ctrl.Rule((intensity['neutral'] | mood['fantastic']), acousticness['medium'])
-    rule3 = ctrl.Rule((intensity['calm'] | mood['horrible']), acousticness['high'])
+    rule2 = ctrl.Rule((intensity['neutral'] | mood['fantastic']),
+                      acousticness['medium'])
+    rule3 = ctrl.Rule((intensity['calm'] | mood['horrible']),
+                      acousticness['high'])
 
     # rules for danceability
-    rule4 = ctrl.Rule((mood['horrible'] | time_of_day['early'] | time_of_day['night']), danceability['low'])
-    rule5 = ctrl.Rule((mood['neutral'] | time_of_day['mid_morning']), danceability['medium'])
-    rule6 = ctrl.Rule((mood['fantastic'] | time_of_day['afternoon'] | time_of_day['evening']), danceability['high'])
+    rule4 = ctrl.Rule(
+        (mood['horrible'] | time_of_day['early'] | time_of_day['night']),
+        danceability['low'])
+    rule5 = ctrl.Rule((mood['neutral'] | time_of_day['mid_morning']),
+                      danceability['medium'])
+    rule6 = ctrl.Rule((mood['fantastic'] | time_of_day['afternoon']
+                       | time_of_day['evening']), danceability['high'])
 
     # rules for energy
-    rule7 = ctrl.Rule((intensity['calm'] | time_of_day['early'] | time_of_day['night']), energy['low'])
-    rule8 = ctrl.Rule((intensity['neutral'] | time_of_day['mid_morning']), energy['medium'])
-    rule9 = ctrl.Rule((intensity['lively'] | time_of_day['afternoon'] | time_of_day['evening']), energy['high'])
+    rule7 = ctrl.Rule(
+        (intensity['calm'] | time_of_day['early'] | time_of_day['night']),
+        energy['low'])
+    rule8 = ctrl.Rule((intensity['neutral'] | time_of_day['mid_morning']),
+                      energy['medium'])
+    rule9 = ctrl.Rule((intensity['lively'] | time_of_day['afternoon']
+                       | time_of_day['evening']), energy['high'])
 
     # rules for valence
     rule10 = ctrl.Rule(mood['horrible'], valence['low'])
@@ -169,15 +178,19 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.close()
 
     return {
-        'acousticness': acousticness_inference.output['acousticness'],
-        'danceability': danceability_inference.output['danceability'],
-        'energy': energy_inference.output['energy'],
-        'valence': valence_inference.output['valence']
+        'acousticness': round(acousticness_inference.output['acousticness'],
+                              3),
+        'danceability': round(danceability_inference.output['danceability'],
+                              3),
+        'energy': round(energy_inference.output['energy'], 3),
+        'valence': round(valence_inference.output['valence'], 3)
     }
+
 
 @app.route('/')
 def index():
     return render_template('index.html')  # No change needed here
+
 
 @app.route('/results', methods=['POST'])
 def results():
@@ -187,25 +200,34 @@ def results():
     time = float(request.form['time'])
     seed_song_url = request.form['seed_song_url']
 
+    track_id = seed_song_url.split('/')[-1].split('?')[0]
+
+    # Fetch track details from Spotify API
+    track_details = sp.track(track_id)
+    seed_song_name = track_details['name']  # Track name
+    seed_song_artist = track_details['artists'][0]['name']
+
     # Run the fuzzy inference simulation and get the results
     output_values = run_fuzzy_simulation(mood_input, intensity_level, time)
 
     recommendations = sp.recommendations(
-        seed_tracks=[seed_song_url.split('/')[-1].split('?')[0]],  # Extract track ID from URL
+        seed_tracks=[track_id],
         limit=10,
         target_acousticness=output_values['acousticness'],
         target_danceability=output_values['danceability'],
         target_energy=output_values['energy'],
-        target_valence=output_values['valence']
-    )
+        target_valence=output_values['valence'])
 
-    return render_template('results.html', 
-                           mood_input=mood_input, 
-                           intensity_level=intensity_level, 
-                           time=time, 
-                           seed_song_url=seed_song_url, 
+    return render_template('results.html',
+                           mood_input=mood_input,
+                           intensity_level=intensity_level,
+                           time=time,
+                           seed_song_url=seed_song_url,
+                           seed_song_name=seed_song_name,
+                           seed_song_artist=seed_song_artist,
                            output_values=output_values,
                            tracks=recommendations['tracks'])
 
+
 if __name__ == '__main__':
-    app.run(debug=True, threaded=False) 
+    app.run(debug=True, threaded=False)

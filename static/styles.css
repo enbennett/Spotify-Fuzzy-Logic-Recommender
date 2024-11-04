@@ -1,0 +1,83 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-inputs {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.user-inputs .form-group {
+  margin-bottom: 40px;
+  /* Increase this value for more space between each variable */
+}
+
+label {
+  display: block;
+  /* Each label on a new line */
+  margin-bottom: 5px;
+  /* Space between label and input */
+}
+
+input[type="text"],
+input[type="number"],
+input[type="url"] {
+  width: 90%;
+  /* Full width input fields */
+  padding: 10px;
+  margin-bottom: 5px;
+  /* Space between input and description */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+small {
+  display: block;
+  /* Each description on a new line */
+  font-size: 0.9em;
+  /* Slightly smaller text */
+  color: #555;
+  /* Darker gray for readability */
+}
+
+/* Styles for user inputs output */
+.user-inputs-output {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+}
+
+.user-inputs-box,
+.output-values-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 15px;
+  width: 48%;
+  /* Adjust width for layout */
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.user-inputs-box h2,
+.output-values-box h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.user-inputs-box p,
+.output-values-box ul {
+  font-size: 0.8em;
+  /* Smaller font size for outputs */
+  margin: 5px 0;
+  /* Margin for spacing */
+}
