@@ -18,7 +18,11 @@
         <div class="recommendations-box">
             <ul>
                 {% for track in tracks %}
-                <li>{{ track['name'] }} by {{ track['artist'] }}</li>
+                <li>
+                    <a href="{{ track['external_urls']['spotify'] }}">
+                        {{ track['name'] }} by {{ track['artists'][0]['name'] }}
+                    </a>
+                </li>
                 {% endfor %}
             </ul>
         </div>
