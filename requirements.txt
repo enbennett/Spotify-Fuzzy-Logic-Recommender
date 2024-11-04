@@ -3,3 +3,4 @@ spotipy
 scikit-fuzzy
 numpy
 matplotlib
+scipy
