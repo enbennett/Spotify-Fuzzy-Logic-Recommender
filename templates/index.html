@@ -1,0 +1,19 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Recommendation System</title>
+</head>
+<body>
+    <h1>Get Your Music Recommendations</h1>
+    <form action="{{ url_for('results') }}" method="post">
+        <!-- Your input fields here -->
+        <input type="text" name="mood" placeholder="Enter mood level">
+        <input type="text" name="intensity" placeholder="Enter intensity level">
+        <input type="text" name="time" placeholder="Enter time of day">
+        <input type="text" name="seed_song_url" placeholder="Enter seed song URL">
+        <button type="submit">Get Recommendations</button>
+    </form>
+</body>
+</html>

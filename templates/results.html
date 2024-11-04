@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fuzzy Inference Results</title>
+    <style>
+        .row {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fuzzy Inference Results</h1>
+
+    <h2>User Inputs</h2>
+    <p><strong>Mood:</strong> {{ mood_input }}</p>
+    <p><strong>Intensity:</strong> {{ intensity_level }}</p>
+    <p><strong>Time of Day:</strong> {{ time }}</p>
+    <p><strong>Seed Song URL:</strong> <a href="{{ seed_song_url }}">{{ seed_song_url }}</a></p>
+
+    <h2>Fuzzy System Output Values</h2>
+    <ul>
+        <li><strong>Acousticness:</strong> {{ output_values['acousticness'] }}</li>
+        <li><strong>Danceability:</strong> {{ output_values['danceability'] }}</li>
+        <li><strong>Energy:</strong> {{ output_values['energy'] }}</li>
+        <li><strong>Valence:</strong> {{ output_values['valence'] }}</li>
+    </ul>
+
+    <h2>Spotify Recommendations</h2>
+    <ul>
+        {% for track in tracks %}
+        <li>{{ track['name'] }} by {{ track['artist'] }}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Antecedents</h2>
+    <div class="row">
+        <img src="{{ url_for('static', filename='mood.png') }}" alt="Mood Membership Function">
+        <img src="{{ url_for('static', filename='time_of_day.png') }}" alt="Time of Day Membership Function">
+        <img src="{{ url_for('static', filename='intensity.png') }}" alt="Intensity Membership Function">
+    </div>
+
+    <h2>Consequents</h2>
+    <div class="row">
+        <img src="{{ url_for('static', filename='acousticness.png') }}" alt="Acousticness Membership Function">
+        <img src="{{ url_for('static', filename='danceability.png') }}" alt="Danceability Membership Function">
+        <img src="{{ url_for('static', filename='energy.png') }}" alt="Energy Membership Function">
+        <img src="{{ url_for('static', filename='valence.png') }}" alt="Valence Membership Function">
+    </div>
+
+    <h2>Inference Results</h2>
+    <div class="row">
+        <img src="{{ url_for('static', filename='acousticness_result.png') }}" alt="Acousticness Result">
+        <img src="{{ url_for('static', filename='danceability_result.png') }}" alt="Danceability Result">
+        <img src="{{ url_for('static', filename='energy_result.png') }}" alt="Energy Result">
+        <img src="{{ url_for('static', filename='valence_result.png') }}" alt="Valence Result">
+    </div>
+</body>
+</html>
