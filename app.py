@@ -102,28 +102,18 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.close()
 
     rule1 = ctrl.Rule(intensity['lively'], acousticness['low'])
-    rule2 = ctrl.Rule((intensity['neutral'] | mood['fantastic']),
-                      acousticness['medium'])
-    rule3 = ctrl.Rule((intensity['calm'] | mood['horrible']),
-                      acousticness['high'])
+    rule2 = ctrl.Rule((intensity['neutral'] | mood['fantastic']), acousticness['medium'])
+    rule3 = ctrl.Rule((intensity['calm'] | mood['horrible']), acousticness['high'])
 
     # rules for danceability
-    rule4 = ctrl.Rule(
-        (mood['horrible'] | time_of_day['early'] | time_of_day['night']),
-        danceability['low'])
-    rule5 = ctrl.Rule((mood['neutral'] | time_of_day['mid_morning']),
-                      danceability['medium'])
-    rule6 = ctrl.Rule((mood['fantastic'] | time_of_day['afternoon']
-                       | time_of_day['evening']), danceability['high'])
+    rule4 = ctrl.Rule((mood['horrible'] | time_of_day['early'] | time_of_day['night']), danceability['low'])
+    rule5 = ctrl.Rule((mood['neutral'] | time_of_day['mid_morning']), danceability['medium'])
+    rule6 = ctrl.Rule((mood['fantastic'] | time_of_day['afternoon'] | time_of_day['evening']), danceability['high'])
 
     # rules for energy
-    rule7 = ctrl.Rule(
-        (intensity['calm'] | time_of_day['early'] | time_of_day['night']),
-        energy['low'])
-    rule8 = ctrl.Rule((intensity['neutral'] | time_of_day['mid_morning']),
-                      energy['medium'])
-    rule9 = ctrl.Rule((intensity['lively'] | time_of_day['afternoon']
-                       | time_of_day['evening']), energy['high'])
+    rule7 = ctrl.Rule((intensity['calm'] | time_of_day['early'] | time_of_day['night']), energy['low'])
+    rule8 = ctrl.Rule((intensity['neutral'] | time_of_day['mid_morning']), energy['medium'])
+    rule9 = ctrl.Rule((intensity['lively'] | time_of_day['afternoon'] | time_of_day['evening']), energy['high'])
 
     # rules for valence
     rule10 = ctrl.Rule(mood['horrible'], valence['low'])
@@ -178,10 +168,8 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.close()
 
     return {
-        'acousticness': round(acousticness_inference.output['acousticness'],
-                              3),
-        'danceability': round(danceability_inference.output['danceability'],
-                              3),
+        'acousticness': round(acousticness_inference.output['acousticness'], 3),
+        'danceability': round(danceability_inference.output['danceability'], 3),
         'energy': round(energy_inference.output['energy'], 3),
         'valence': round(valence_inference.output['valence'], 3)
     }
