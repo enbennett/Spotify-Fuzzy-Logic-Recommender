@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.')
 
 # Load Spotify API credentials from a configuration file
 with open('spotify_api.yaml', 'r') as file:
@@ -177,7 +177,7 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  # No change needed here
 
 @app.route('/results', methods=['POST'])
 def results():
