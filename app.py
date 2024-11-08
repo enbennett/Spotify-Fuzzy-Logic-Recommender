@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template
-from apscheduler.schedulers.background import BackgroundScheduler
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import skfuzzy as fuzz
@@ -8,8 +7,6 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import matplotlib
-import requests
-
 
 matplotlib.use('Agg')
 
@@ -25,20 +22,6 @@ sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
 
 if not os.path.exists('static'):
     os.makedirs('static')
-
-# Function to keep the app awake by pinging the endpoint
-def ping_app():
-    try:
-        requests.get("http://0.0.0.0:5000")
-        print("Pinged the app to keep it awake.")
-    except requests.RequestException as e:
-        print(f"Ping failed: {e}")
-
-# Scheduler setup to ping every 10 minutes
-scheduler = BackgroundScheduler()
-scheduler.add_job(ping_app, 'interval', minutes=10)
-scheduler.start()
-
 
 def run_fuzzy_simulation(mood_input, intensity_level, time):
 
@@ -63,17 +46,17 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.figure()
     mood.view()
     plt.savefig('static/mood.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     time_of_day.view()
     plt.savefig('static/time_of_day.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     intensity.view()
     plt.savefig('static/intensity.png')
-    plt.close()
+    plt.close('all')
 
     acousticness = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'acousticness')
     danceability = ctrl.Consequent(np.arange(0, 1.1, 0.1), 'danceability')
@@ -100,22 +83,22 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.figure()
     acousticness.view()
     plt.savefig('static/acousticness.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     danceability.view()
     plt.savefig('static/danceability.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     energy.view()
     plt.savefig('static/energy.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     valence.view()
     plt.savefig('static/valence.png')
-    plt.close()
+    plt.close('all')
 
     rule1 = ctrl.Rule(intensity['lively'], acousticness['low'])
     rule2 = ctrl.Rule((intensity['neutral'] | mood['fantastic']), acousticness['medium'])
@@ -166,22 +149,22 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
     plt.figure()
     acousticness.view(sim=acousticness_inference)
     plt.savefig('static/acousticness_result.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     danceability.view(sim=danceability_inference)
     plt.savefig('static/danceability_result.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     energy.view(sim=energy_inference)
     plt.savefig('static/energy_result.png')
-    plt.close()
+    plt.close('all')
 
     plt.figure()
     valence.view(sim=valence_inference)
     plt.savefig('static/valence_result.png')
-    plt.close()
+    plt.close('all')
 
     return {
         'acousticness': round(acousticness_inference.output['acousticness'], 3),
