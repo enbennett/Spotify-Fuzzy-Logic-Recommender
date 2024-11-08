@@ -4,28 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <title>Fuzzy Inference Results</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Permanent+Marker&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-    <header>
-        <h1>Fuzzy Inference Results</h1>
-    </header>
-
     <section class="recommendations">
         <h2>Fuzzy Song Recommendations</h2>
         <div class="recommendations-box">
-            <ul>
-                {% for track in tracks %}
-                <li>
-                    <a href="{{ track['external_urls']['spotify'] }}">
-                        {{ track['name'] }} by {{ track['artists'][0]['name'] }}
-                    </a>
-                </li>
-                {% endfor %}
-            </ul>
+            <div class="side" id="sideA">
+                <h3>Side A</h3>
+                <ul>
+                    {% for track in tracks[:5] %}
+                    <li>
+                        <a href="{{ track['external_urls']['spotify'] }}">
+                            {{ track['name'] }} by {{ track['artists'][0]['name'] }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="side" id="sideB">
+                <h3>Side B</h3>
+                <ul>
+                    {% for track in tracks[5:10] %}
+                    <li>
+                        <a href="{{ track['external_urls']['spotify'] }}">
+                            {{ track['name'] }} by {{ track['artists'][0]['name'] }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
+    </section>
+        
     </section>
 
     <section class="user-inputs-output">
