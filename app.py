@@ -15,6 +15,17 @@ matplotlib.use('Agg')
 
 app = Flask(__name__, template_folder='.')
 
+# Load Spotify API credentials from a configuration file
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
+
+# Initialize Spotify client
+sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
+    client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
+
+if not os.path.exists('static'):
+    os.makedirs('static')
+
 # Function to keep the app awake by pinging the endpoint
 def ping_app():
     try:
@@ -27,17 +38,6 @@ def ping_app():
 scheduler = BackgroundScheduler()
 scheduler.add_job(ping_app, 'interval', minutes=10)
 scheduler.start()
-
-# Load Spotify API credentials from a configuration file
-CLIENT_ID = os.environ['CLIENT_ID']
-CLIENT_SECRET = os.environ['CLIENT_SECRET']
-
-# Initialize Spotify client
-sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
-    client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
-
-if not os.path.exists('static'):
-    os.makedirs('static')
 
 
 def run_fuzzy_simulation(mood_input, intensity_level, time):
