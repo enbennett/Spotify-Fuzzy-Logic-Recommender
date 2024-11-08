@@ -13,8 +13,11 @@ matplotlib.use('Agg')
 app = Flask(__name__, template_folder='.')
 
 # Load Spotify API credentials from a configuration file
-CLIENT_ID = os.environ['CLIENT_ID']
-CLIENT_SECRET = os.environ['CLIENT_SECRET']
+#CLIENT_ID = os.environ['CLIENT_ID']
+#CLIENT_SECRET = os.environ['CLIENT_SECRET']
+
+CLIENT_ID = '3b5b38be114846dab3c2e92171e2dc5c'
+CLIENT_SECRET = '7345c8166a284cfaab923c1d9ff6904a'
 
 # Initialize Spotify client
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
@@ -179,6 +182,21 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
 def index():
     return render_template('index.html')  # No change needed here
 
+@app.route('/search_song', methods=['GET'])
+def search_song():
+    query = request.args.get('query', '')
+    if query:
+        results = sp.search(q=query, type='track', limit=5)
+        songs = [
+            {
+                'id': track['id'],
+                'name': track['name'],
+                'artist': track['artists'][0]['name']
+            }
+            for track in results['tracks']['items']
+        ]
+        return {'songs': songs}
+    return {'songs': []}
 
 @app.route('/results', methods=['POST'])
 def results():
@@ -186,12 +204,14 @@ def results():
     mood_input = float(request.form['mood'])
     intensity_level = float(request.form['intensity'])
     time = float(request.form['time'])
-    seed_song_url = request.form['seed_song_url']
+    seed_song_id = request.form.get('seed_song_id')
 
-    track_id = seed_song_url.split('/')[-1].split('?')[0]
+    seed_song_url = f"https://open.spotify.com/track/{seed_song_id}"
+
+    #track_id = seed_song_url.split('/')[-1].split('?')[0]
 
     # Fetch track details from Spotify API
-    track_details = sp.track(track_id)
+    track_details = sp.track(seed_song_id)
     seed_song_name = track_details['name']  # Track name
     seed_song_artist = track_details['artists'][0]['name']
 
@@ -199,7 +219,7 @@ def results():
     output_values = run_fuzzy_simulation(mood_input, intensity_level, time)
 
     recommendations = sp.recommendations(
-        seed_tracks=[track_id],
+        seed_tracks=[seed_song_id],
         limit=10,
         target_acousticness=output_values['acousticness'],
         target_danceability=output_values['danceability'],
@@ -218,5 +238,5 @@ def results():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)

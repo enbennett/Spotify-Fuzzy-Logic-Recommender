@@ -2,6 +2,7 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 20px;
+  overflow-x: hidden;
 }
 
 header {
@@ -22,6 +23,32 @@ header {
   /* Increase this value for more space between each variable */
 }
 
+.user-inputs #song-suggestions {
+  max-height: 200px; /* Limit height of suggestions */
+  overflow-y: auto; /* Scroll if the list gets too long */
+  border: 1px solid #ccc; /* Border around the suggestions */
+  background-color: white; /* Set background color */
+  /* position: absolute; /* Ensure it floats above other content */
+  z-index: 10; /* Ensure it's on top of other elements */
+  width: 70%; /* Full width of the input field */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+  box-sizing: border-box;
+  display: none;
+}
+
+/* Style each suggestion item */
+.user-inputs .suggestion-item {
+  padding: 10px; /* Space around each suggestion */
+  cursor: pointer; /* Make it clear that the items are clickable */
+  transition: background-color 0.3s; /* Smooth background color change */
+}
+
+/* Hover effect for suggestion items */
+.user-inputs .suggestion-item:hover {
+  background-color: #f0f0f0; /* Light gray background on hover */
+}
+
 label {
   display: block;
   /* Each label on a new line */
@@ -31,7 +58,7 @@ label {
 
 input[type="text"],
 input[type="number"],
-input[type="url"] {
+input[type="search"] {
   width: 90%;
   /* Full width input fields */
   padding: 10px;

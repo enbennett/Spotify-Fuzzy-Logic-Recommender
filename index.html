@@ -36,14 +36,82 @@
             </div>
 
             <div class="form-group">
-                <label for="seed_song_url">Seed Song URL:</label>
-                <input type="url" id="seed_song_url" name="seed_song_url" required>
-                <small>Provide a valid URL for an example song from spotify that matches the genre of what recommendations you would like.</small>
+                <label for="seed_song">Seed Song:</label>
+                <input type="text" id="seed_song" name="seed_song" placeholder="Type to search for a song" required autocomplete="off">
+                <div id="song-suggestions" class="suggestions"></div>
+                <small>Begin typing to select an example song from Spotify that matches the genre of what recommendations you would like.</small>
             </div>
+
+            <!-- Hidden input to store song ID -->
+            <input type="hidden" id="seed_song_id" name="seed_song_id">
 
             <button type="submit">Submit</button>
         </form>
     </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const seedSongInput = document.getElementById('seed_song');
+            const seedSongIdInput = document.getElementById('seed_song_id');
+            const suggestionsContainer = document.getElementById('song-suggestions');
+        
+            // Event listener for input in the seed song field
+            seedSongInput.addEventListener('input', function() {
+                const query = seedSongInput.value;
+            
+                if (query.length > 2) {
+                    fetch(`/search_song?query=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            suggestionsContainer.innerHTML = ''; // Clear previous suggestions
+                
+                            // Check if there are any songs returned
+                            if (data.songs.length === 0) {
+                                suggestionsContainer.innerHTML = '<p>No songs found</p>';
+                                suggestionsContainer.style.display = 'none'; // Hide suggestions if none found
+                                return;
+                            }
+                
+                            // Create suggestion items for each song found
+                            data.songs.forEach(song => {
+                                const div = document.createElement('div');
+                                div.classList.add('suggestion-item');
+                                div.textContent = `${song.name} by ${song.artist}`;
+                                div.dataset.id = song.id; // Store song ID as a data attribute
+                
+                                // Add click event listener to each suggestion
+                                div.addEventListener('click', () => {
+                                    seedSongInput.value = `${song.name} by ${song.artist}`; // Set the selected song in the input field
+                                    seedSongIdInput.value = song.id;  // Save the selected song's ID into the hidden input field
+                                    suggestionsContainer.innerHTML = ''; // Clear suggestions after selection
+                                    suggestionsContainer.style.display = 'none'; // Hide suggestions after selection
+                                });
+                
+                                suggestionsContainer.appendChild(div);
+                            });
+                
+                            suggestionsContainer.style.display = 'block'; // Show suggestions
+                        })
+                        .catch(error => {
+                            console.error('Error fetching suggestions:', error);
+                            suggestionsContainer.innerHTML = '<p>Error fetching songs</p>';
+                            suggestionsContainer.style.display = 'none'; // Hide suggestions if there's an error
+                        });
+                } else {
+                    suggestionsContainer.innerHTML = ''; // Clear suggestions if the query is too short
+                    suggestionsContainer.style.display = 'none'; // Hide suggestions when input is too short
+                }
+            });
+        
+            // Hide suggestions if user clicks outside the input field
+            document.addEventListener('click', function(event) {
+                if (!seedSongInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+        });
+    </script>
+
 </body>
 
 </html>
