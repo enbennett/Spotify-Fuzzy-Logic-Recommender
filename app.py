@@ -279,6 +279,7 @@ def results():
                 target_danceability=output_values['danceability'],
                 target_energy=output_values['energy'],
                 target_valence=output_values['valence'])
+            
     except Exception as e:
         return {'error': f"Error fetching recommendations: {str(e)}"}, 500
 
@@ -289,7 +290,9 @@ def results():
                            seed_song_url=seed_song_url,
                            seed_song_name=seed_song_name,
                            seed_song_artist=seed_song_artist,
-                           recommendations=recommendations['tracks'])
+                           seed_song_genre = seed_genre,
+                           output_values=output_values,
+                           tracks=recommendations['tracks'])
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
