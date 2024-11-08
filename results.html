@@ -29,18 +29,23 @@
     </section>
 
     <section class="user-inputs-output">
+
         <div class="user-inputs-box">
             <h2>User Inputs</h2>
             <div class="inputs-container">
                 <p><strong>Mood:</strong> {{ mood_input }}</p>
                 <p><strong>Intensity:</strong> {{ intensity_level }}</p>
                 <p><strong>Time of Day:</strong> {{ time }}</p>
-                <p>
-                    <strong>
-                        <a href="{{ seed_song_url }}">Seed Song:</a>
-                    </strong>
-                    {{ seed_song_name }} by {{ seed_song_artist }}
+                <p><strong>Seed </strong>
+                    {% if seed_song_genre %}
+                        <strong>Genre</strong>: {{ seed_song_genre }}
+                    {% elif seed_song_name %}
+                        <a href="{{ seed_song_url }}">Song:</a> {{ seed_song_name }} by {{ seed_song_artist }}
+                    {% else %}
+                        No seed provided
+                    {% endif %}
                 </p>
+
             </div>
         </div>
 
@@ -53,6 +58,7 @@
                 <li><strong>Valence:</strong> {{ output_values['valence'] }}</li>
             </ul>
         </div>
+
     </section>
 
     <section class="graphs">

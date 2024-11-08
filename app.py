@@ -198,6 +198,14 @@ def search_song():
         return {'songs': songs}
     return {'songs': []}
 
+@app.route('/search_genre', methods=['GET'])
+def search_genre():
+    query = request.args.get('query', '')  # Get the query from the request
+    genres = sp.recommendation_genre_seeds()  # Fetch all genres from the Spotify API
+
+    # Return all genres without filtering
+    return {'genres': genres['genres']}
+
 @app.route('/results', methods=['POST'])
 def results():
     # Get user inputs
@@ -205,27 +213,43 @@ def results():
     intensity_level = float(request.form['intensity'])
     time = float(request.form['time'])
     seed_song_id = request.form.get('seed_song_id')
+    seed_genre = request.form.get('seed_genre')
 
-    seed_song_url = f"https://open.spotify.com/track/{seed_song_id}"
+    seed_song_url = None
+    seed_song_name = None
+    seed_song_artist = None
 
-    #track_id = seed_song_url.split('/')[-1].split('?')[0]
+    # If a seed song ID is provided, fetch the track details from Spotify
 
-    # Fetch track details from Spotify API
-    track_details = sp.track(seed_song_id)
-    seed_song_name = track_details['name']  # Track name
-    seed_song_artist = track_details['artists'][0]['name']
+    if seed_song_id:
+        seed_song_url = f"https://open.spotify.com/track/{seed_song_id}"
+        track_details = sp.track(seed_song_id)
+        seed_song_name = track_details['name']
+        seed_song_artist = track_details['artists'][0]['name']
 
     # Run the fuzzy inference simulation and get the results
     output_values = run_fuzzy_simulation(mood_input, intensity_level, time)
 
-    recommendations = sp.recommendations(
-        seed_tracks=[seed_song_id],
-        limit=10,
-        target_acousticness=output_values['acousticness'],
-        target_danceability=output_values['danceability'],
-        target_energy=output_values['energy'],
-        target_valence=output_values['valence'])
+    # Prioritize genre over song for recommendations if both are provided
+    if seed_genre:
+        recommendations = sp.recommendations(
+            seed_genres=[seed_genre],  # Include genre in the recommendations
+            limit=10,
+            target_acousticness=output_values['acousticness'],
+            target_danceability=output_values['danceability'],
+            target_energy=output_values['energy'],
+            target_valence=output_values['valence'])
+        
+    else:
+        recommendations = sp.recommendations(
+            seed_tracks=[seed_song_id],  # Include song in the recommendations
+            limit=10,
+            target_acousticness=output_values['acousticness'],
+            target_danceability=output_values['danceability'],
+            target_energy=output_values['energy'],
+            target_valence=output_values['valence'])
 
+    # Render the results template with the appropriate data
     return render_template('results.html',
                            mood_input=mood_input,
                            intensity_level=intensity_level,
@@ -233,9 +257,9 @@ def results():
                            seed_song_url=seed_song_url,
                            seed_song_name=seed_song_name,
                            seed_song_artist=seed_song_artist,
+                           seed_song_genre = seed_genre,
                            output_values=output_values,
                            tracks=recommendations['tracks'])
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 8080))

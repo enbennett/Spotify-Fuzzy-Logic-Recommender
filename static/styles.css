@@ -23,7 +23,8 @@ header {
   /* Increase this value for more space between each variable */
 }
 
-.user-inputs #song-suggestions {
+.user-inputs #song-suggestions,
+.user-inputs #genre-suggestions {
   max-height: 200px; /* Limit height of suggestions */
   overflow-y: auto; /* Scroll if the list gets too long */
   border: 1px solid #ccc; /* Border around the suggestions */
