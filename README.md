@@ -6,6 +6,6 @@ Spotify's API is utilized in conjunction with Mamdani logic to recommend based o
 
 The web UI is hosted on Render at the following URL link (note it may take a minute to spin up again if the link has been unactive):
 
-https://spotify-fuzzy-logic-recommender.onrender.com/!
+https://spotify-fuzzy-logic-recommender.onrender.com/
 
 Enjoy!
