@@ -1,10 +1,13 @@
 from flask import Flask, request, render_template
+from apscheduler.schedulers.background import BackgroundScheduler
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import numpy as np
 import os
+import requests
+import urllib3
 import matplotlib.pyplot as plt
 import matplotlib
 
@@ -12,13 +15,41 @@ matplotlib.use('Agg')
 
 app = Flask(__name__, template_folder='.')
 
+def ping():
+    print("Pinging the server...")
+
+# Set up APScheduler to run the ping function every 10 minutes
+scheduler = BackgroundScheduler()
+scheduler.add_job(ping, 'interval', minutes=10)  # This will run `ping()` every 10 minutes
+scheduler.start()
+
 # Load Spotify API credentials from a configuration file
 CLIENT_ID = os.environ['CLIENT_ID']
 CLIENT_SECRET = os.environ['CLIENT_SECRET']
 
-# Initialize Spotify client
-sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
-    client_id=CLIENT_ID, client_secret=CLIENT_SECRET))
+# logic from ref - https://github.com/spotipy-dev/spotipy/issues/766#issuecomment-1005102900
+
+# Create a requests session with retry logic
+session = requests.Session()
+
+retry = urllib3.Retry(
+    total=3,  # Retry up to 3 times
+    connect=None,
+    read=3,  # Retry on read failures (including rate limiting)
+    allowed_methods=frozenset(['GET', 'POST', 'PUT', 'DELETE']),
+    status=3,  # Retry on certain HTTP status codes
+    backoff_factor=0.5,  # Delay between retries
+    status_forcelist=(429, 500, 502, 503, 504),  # These are retryable errors
+    respect_retry_after_header=True  # Automatically respect the 'Retry-After' header
+)
+
+adapter = requests.adapters.HTTPAdapter(max_retries=retry)
+session.mount('http://', adapter)
+session.mount('https://', adapter)
+
+# Initialize Spotify client with custom session
+client_credentials_manager = SpotifyClientCredentials(client_id=CLIENT_ID, client_secret=CLIENT_SECRET)
+sp = spotipy.Spotify(auth_manager=client_credentials_manager, requests_session=session)
 
 if not os.path.exists('static'):
     os.makedirs('static')
@@ -176,31 +207,35 @@ def run_fuzzy_simulation(mood_input, intensity_level, time):
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # No change needed here
+    return render_template('index.html')
 
 @app.route('/search_song', methods=['GET'])
 def search_song():
     query = request.args.get('query', '')
     if query:
-        results = sp.search(q=query, type='track', limit=5)
-        songs = [
-            {
-                'id': track['id'],
-                'name': track['name'],
-                'artist': track['artists'][0]['name']
-            }
-            for track in results['tracks']['items']
-        ]
-        return {'songs': songs}
+        try:
+            results = sp.search(q=query, type='track', limit=5)
+            songs = [
+                {
+                    'id': track['id'],
+                    'name': track['name'],
+                    'artist': track['artists'][0]['name']
+                }
+                for track in results['tracks']['items']
+            ]
+            return {'songs': songs}
+        except Exception as e:
+            return {'error': str(e)}, 500
     return {'songs': []}
 
 @app.route('/search_genre', methods=['GET'])
 def search_genre():
-    query = request.args.get('query', '')  # Get the query from the request
-    genres = sp.recommendation_genre_seeds()  # Fetch all genres from the Spotify API
-
-    # Return all genres without filtering
-    return {'genres': genres['genres']}
+    query = request.args.get('query', '')
+    try:
+        genres = sp.recommendation_genre_seeds()  # Fetch all genres from the Spotify API
+        return {'genres': genres['genres']}
+    except Exception as e:
+        return {'error': str(e)}, 500
 
 @app.route('/results', methods=['POST'])
 def results():
@@ -215,37 +250,38 @@ def results():
     seed_song_name = None
     seed_song_artist = None
 
-    # If a seed song ID is provided, fetch the track details from Spotify
-
     if seed_song_id:
-        seed_song_url = f"https://open.spotify.com/track/{seed_song_id}"
-        track_details = sp.track(seed_song_id)
-        seed_song_name = track_details['name']
-        seed_song_artist = track_details['artists'][0]['name']
+        try:
+            seed_song_url = f"https://open.spotify.com/track/{seed_song_id}"
+            track_details = sp.track(seed_song_id)
+            seed_song_name = track_details['name']
+            seed_song_artist = track_details['artists'][0]['name']
+        except Exception as e:
+            return {'error': f"Error fetching song details: {str(e)}"}, 500
 
-    # Run the fuzzy inference simulation and get the results
     output_values = run_fuzzy_simulation(mood_input, intensity_level, time)
 
-    # Prioritize genre over song for recommendations if both are provided
-    if seed_genre:
-        recommendations = sp.recommendations(
-            seed_genres=[seed_genre],  # Include genre in the recommendations
-            limit=10,
-            target_acousticness=output_values['acousticness'],
-            target_danceability=output_values['danceability'],
-            target_energy=output_values['energy'],
-            target_valence=output_values['valence'])
-        
-    else:
-        recommendations = sp.recommendations(
-            seed_tracks=[seed_song_id],  # Include song in the recommendations
-            limit=10,
-            target_acousticness=output_values['acousticness'],
-            target_danceability=output_values['danceability'],
-            target_energy=output_values['energy'],
-            target_valence=output_values['valence'])
+    # Prioritize genre over song for recommendations
+    try:
+        if seed_genre:
+            recommendations = sp.recommendations(
+                seed_genres=[seed_genre],
+                limit=10,
+                target_acousticness=output_values['acousticness'],
+                target_danceability=output_values['danceability'],
+                target_energy=output_values['energy'],
+                target_valence=output_values['valence'])
+        else:
+            recommendations = sp.recommendations(
+                seed_tracks=[seed_song_id],
+                limit=10,
+                target_acousticness=output_values['acousticness'],
+                target_danceability=output_values['danceability'],
+                target_energy=output_values['energy'],
+                target_valence=output_values['valence'])
+    except Exception as e:
+        return {'error': f"Error fetching recommendations: {str(e)}"}, 500
 
-    # Render the results template with the appropriate data
     return render_template('results.html',
                            mood_input=mood_input,
                            intensity_level=intensity_level,
@@ -253,10 +289,8 @@ def results():
                            seed_song_url=seed_song_url,
                            seed_song_name=seed_song_name,
                            seed_song_artist=seed_song_artist,
-                           seed_song_genre = seed_genre,
-                           output_values=output_values,
-                           tracks=recommendations['tracks'])
+                           recommendations=recommendations['tracks'])
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True, host="0.0.0.0", port=port)
