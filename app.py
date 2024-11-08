@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template
+from apscheduler.schedulers.background import BackgroundScheduler
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import skfuzzy as fuzz
@@ -7,17 +8,29 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 import matplotlib
+import requests
+
 
 matplotlib.use('Agg')
 
 app = Flask(__name__, template_folder='.')
 
-# Load Spotify API credentials from a configuration file
-#CLIENT_ID = os.environ['CLIENT_ID']
-#CLIENT_SECRET = os.environ['CLIENT_SECRET']
+# Function to keep the app awake by pinging the endpoint
+def ping_app():
+    try:
+        requests.get("http://0.0.0.0:5000")
+        print("Pinged the app to keep it awake.")
+    except requests.RequestException as e:
+        print(f"Ping failed: {e}")
 
-CLIENT_ID = '3b5b38be114846dab3c2e92171e2dc5c'
-CLIENT_SECRET = '7345c8166a284cfaab923c1d9ff6904a'
+# Scheduler setup to ping every 10 minutes
+scheduler = BackgroundScheduler()
+scheduler.add_job(ping_app, 'interval', minutes=10)
+scheduler.start()
+
+# Load Spotify API credentials from a configuration file
+CLIENT_ID = os.environ['CLIENT_ID']
+CLIENT_SECRET = os.environ['CLIENT_SECRET']
 
 # Initialize Spotify client
 sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
@@ -262,5 +275,5 @@ def results():
                            tracks=recommendations['tracks'])
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
